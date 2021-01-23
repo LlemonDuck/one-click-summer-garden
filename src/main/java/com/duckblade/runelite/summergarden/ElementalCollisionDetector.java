@@ -127,7 +127,13 @@ public class ElementalCollisionDetector {
         if (getParityThree() != 0 || tickBasis[5] == -1)
             return -1;
 
-        return getDiff(2, 5);
+        int diff = getDiff(2, 5);
+        if ((diff >= 0 && diff <= 5) || diff == 9 || diff == 11) // works on 0-5 + 9 + 11
+            return 0;
+        else if (diff < 9) // distance from 5
+            return diff - 5;
+        else // diff is 10
+            return 1;
     }
 
 }
