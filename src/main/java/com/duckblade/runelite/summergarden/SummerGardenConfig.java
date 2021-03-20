@@ -68,4 +68,14 @@ public interface SummerGardenConfig extends Config {
         return 25;
     }
 
+    @ConfigItem(
+            keyName = "cycleNotification",
+            name = "Cycle Notification",
+            description = "Whether to send a notification when the launch cycle is starting.",
+            position = 7
+    )
+    default boolean cycleNotification() {
+        return false;
+    }
+
 }

@@ -5,14 +5,8 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.ClientTick;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.Notifier;
-import net.runelite.client.chat.ChatMessageBuilder;
-import net.runelite.client.chat.ChatMessageManager;
-import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -47,8 +41,10 @@ public class SummerGardenPlugin extends Plugin
 
 	private static final WorldPoint GARDEN = new WorldPoint(2915, 5490, 0);
 	private static final String STAMINA_MESSAGE = "[One Click Summer Garden] Low Stamina Warning";
+	private static final String CYCLE_MESSAGE = "[One Click Summer Garden] Cycle Ready";
 
-	private boolean sentNotification = false;
+	private boolean sentStaminaNotification = false;
+	private boolean sentCycleNotification = false;
 
 	@Override
 	protected void startUp() throws Exception
@@ -93,16 +89,25 @@ public class SummerGardenPlugin extends Plugin
 			.stream()
 			.filter(ElementalCollisionDetector::isSummerElemental)
 			.forEach(npc -> collisionDetector.updatePosition(npc, client.getTickCount()));
+		
+		// cycle notification
+		if (config.cycleNotification()) {
+			boolean shouldSend = collisionDetector.isLaunchCycle();
+			if (shouldSend && !sentCycleNotification)
+				notifier.notify(CYCLE_MESSAGE, TrayIcon.MessageType.INFO);
+			
+			sentCycleNotification = shouldSend;
+		}
 
 		// check for stamina usage
 		int stamThreshold = config.staminaThreshold();
 		if (stamThreshold != 0) {
 			boolean stamActive = client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0;
-			if (client.getEnergy() <= stamThreshold && !stamActive && !sentNotification) {
+			if (client.getEnergy() <= stamThreshold && !stamActive && !sentStaminaNotification) {
 				notifier.notify(STAMINA_MESSAGE, TrayIcon.MessageType.WARNING);
-				sentNotification = true;
+				sentStaminaNotification = true;
 			} else if (client.getEnergy() > stamThreshold) {
-				sentNotification = false;
+				sentStaminaNotification = false;
 			}
 		}
 	}
