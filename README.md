@@ -12,6 +12,9 @@ in order for the one-click method to work.
 
 ### Plugin Usage
 
+**If you prefer a video guide, you can check out 
+[this great tutorial video made by RobbieRS!](https://www.youtube.com/watch?v=5wRqLh3qHPc)**
+
 To use this plugin, I recommend that you are already familiar with the one-click method.
 You can find this method 
 [on the OSRS Wiki here](https://oldschool.runescape.wiki/w/Sorceress%27s_Garden/Summer#One-click_Summer_Garden_Method).
