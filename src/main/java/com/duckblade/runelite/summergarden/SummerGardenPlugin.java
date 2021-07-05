@@ -9,11 +9,15 @@ import net.runelite.api.events.GameTick;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 import java.awt.*;
+import net.runelite.client.ui.overlay.infobox.InfoBox;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 
 @Slf4j
 @PluginDescriptor(
@@ -28,6 +32,12 @@ public class SummerGardenPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Inject
+	private InfoBoxManager infoBoxManager;
+
+	@Inject
+	private ItemManager itemManager;
+
+	@Inject
 	private Notifier notifier;
 
 	@Inject
@@ -39,23 +49,30 @@ public class SummerGardenPlugin extends Plugin
 	@Inject
 	private SummerGardenConfig config;
 
+	public static final String CONFIG_GROUP = "oneclicksummergarden";
+	public static final String CONFIG_KEY_GATE_START = "useGateStartPoint";
+	public static final String CONFIG_KEY_COUNTDOWN_TIMER_INFOBOX = "showCountdownTimer";
 	private static final WorldPoint GARDEN = new WorldPoint(2915, 5490, 0);
 	private static final String STAMINA_MESSAGE = "[One Click Summer Garden] Low Stamina Warning";
 	private static final String CYCLE_MESSAGE = "[One Click Summer Garden] Cycle Ready";
+	private static final int SUMMER_SQUIRK_ITEM_ID = 10845;
 
+	private InfoBox countdownTimerInfoBox;
 	private boolean sentStaminaNotification = false;
-	private boolean sentCycleNotification = false;
 
 	@Override
 	protected void startUp() throws Exception
 	{
 		enableOverlay();
+		if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
+		collisionDetector.setGateStart(config.useGateStartPoint());
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
 		disableOverlay();
+		disableCountdownTimerInfoBox();
 	}
 
 	private boolean overlayEnabled = false;
@@ -71,6 +88,30 @@ public class SummerGardenPlugin extends Plugin
 		if (overlayEnabled)
 			overlayManager.remove(overlay);
 		overlayEnabled = false;
+	}
+
+	private void enableCountdownTimerInfoBox() {
+		if (countdownTimerInfoBox == null) {
+			countdownTimerInfoBox = new InfoBox(itemManager.getImage(SUMMER_SQUIRK_ITEM_ID), this)
+			{
+				@Override
+				public String getText()
+				{
+					return "" + collisionDetector.getTicksUntilStart();
+				}
+
+				@Override
+				public Color getTextColor()
+				{
+					return null;
+				}
+			};
+		}
+		infoBoxManager.addInfoBox(countdownTimerInfoBox);
+	}
+
+	private void disableCountdownTimerInfoBox() {
+		infoBoxManager.removeInfoBox(countdownTimerInfoBox);
 	}
 
 	@Subscribe
@@ -89,14 +130,11 @@ public class SummerGardenPlugin extends Plugin
 			.stream()
 			.filter(ElementalCollisionDetector::isSummerElemental)
 			.forEach(npc -> collisionDetector.updatePosition(npc, client.getTickCount()));
-		
+		collisionDetector.updateCountdownTimer(client.getTickCount());
+
 		// cycle notification
-		if (config.cycleNotification()) {
-			boolean shouldSend = collisionDetector.isLaunchCycle();
-			if (shouldSend && !sentCycleNotification)
-				notifier.notify(CYCLE_MESSAGE, TrayIcon.MessageType.INFO);
-			
-			sentCycleNotification = shouldSend;
+		if (config.cycleNotification() && collisionDetector.getTicksUntilStart() == config.notifyTicksBeforeStart()) {
+			notifier.notify(CYCLE_MESSAGE, TrayIcon.MessageType.INFO);
 		}
 
 		// check for stamina usage
@@ -109,6 +147,18 @@ public class SummerGardenPlugin extends Plugin
 			} else if (client.getEnergy() > stamThreshold) {
 				sentStaminaNotification = false;
 			}
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged) {
+		if (!configChanged.getGroup().equals(CONFIG_GROUP)) return;
+
+		if (configChanged.getKey().equals(CONFIG_KEY_GATE_START)) {
+			collisionDetector.setGateStart(config.useGateStartPoint());
+		} else if (configChanged.getKey().equals(CONFIG_KEY_COUNTDOWN_TIMER_INFOBOX)) {
+			if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
+			else disableCountdownTimerInfoBox();
 		}
 	}
 

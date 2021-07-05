@@ -10,7 +10,7 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = '1.7.3-SNAPSHOT'
+def runeLiteVersion = '1.7.14.1'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -21,6 +21,8 @@ dependencies {
 	testImplementation 'junit:junit:4.12'
 	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+
+    testCompile group: 'org.mockito', name: 'mockito-core', version: '3.8.0'
 }
 
 group = 'com.duckblade.runelite'
