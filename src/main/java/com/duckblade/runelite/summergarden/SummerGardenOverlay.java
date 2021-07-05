@@ -26,7 +26,8 @@ public class SummerGardenOverlay extends Overlay
 	private final SummerGardenConfig config;
 	private final ElementalCollisionDetector collisionDetector;
 
-	private static final WorldPoint LAUNCH_POINT = new WorldPoint(2907, 5485, 0);
+	private static final WorldPoint LAUNCH_POINT_REGULAR_START = new WorldPoint(2907, 5485, 0);
+	private static final WorldPoint LAUNCH_POINT_GATE_START = new WorldPoint(2907, 5484, 0);
 
 	@Inject
 	public SummerGardenOverlay(Client client, SummerGardenConfig config, ElementalCollisionDetector collisionDetector)
@@ -46,7 +47,7 @@ public class SummerGardenOverlay extends Overlay
 			.forEach(npc -> renderNpc(npc, graphics));
 
 		if (config.highlightLaunchTile())
-			renderTile(graphics, LAUNCH_POINT, config.highlightLaunch());
+			renderTile(graphics, config.useGateStartPoint() ? LAUNCH_POINT_GATE_START : LAUNCH_POINT_REGULAR_START, config.highlightLaunch());
 
 		return null;
 	}

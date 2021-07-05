@@ -1,7 +1,9 @@
 package com.duckblade.runelite.summergarden;
 
+import java.util.Arrays;
 import javax.inject.Singleton;
-
+import lombok.Getter;
+import lombok.Setter;
 import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
@@ -18,13 +20,44 @@ public class ElementalCollisionDetector {
     };
     private static final int[] CYCLE_LENGTHS = {10, 10, 12, 20, 12, 12};
 
+    @Setter
+    private boolean gateStart;
+
     private final int[] tickBasis = {-1, -1, -1, -1, -1, -1};
 
-    public static boolean isSummerElemental(NPC npc) {
-        return npc.getId() >= 1801 && npc.getId() <= 1806;
-    }
+    @Getter
+	private int ticksUntilStart = -1;
 
-    public void updatePosition(NPC npc, int tc) {
+	static final boolean[][] VALID_TICKS_NORMAL_START = {
+		{false, false, false, false, false, false, false, true, false, false},
+		{false, false, false, true, false, false, false, false, true, false},
+		{true, false, false, false, false, true, true, true, false, false, false, false},
+		{true, true, true, true, false, false, false, true, true, true, true, false, false, true, false, false, false, false, false, true},
+		{false, false, true, false, false, false, false, false, true, false, false, false},
+		{true, false, false, false, true, false, true, true, true, true, true, true}
+	};
+	static final boolean[][] VALID_TICKS_GATE_START = {
+		{false, false, false, false, false, false, true, false, false, false},
+		{true, true, true, false, false, false, false, true, false, false},
+		{false, false, true, true, true, true, false, false, false, false, true, true},
+		{true, true, true, false, false, false, true, true, true, true, true, true, false, false, false, false, false, true, true, true},
+		{true, false, true, false, false, false, true, false, false, false, false, true},
+		{false, false, false, true, false, false, true, true, true, true, true, false}
+	};
+
+	/**
+	 * The second index is the number of ticks since it was last at its home spot.
+	 * The value in the array is whether you can run past that elemental without getting caught.
+	 */
+	private boolean[] getValidTicksForElemental(int elementalIndex) {
+		return gateStart ? VALID_TICKS_GATE_START[elementalIndex] : VALID_TICKS_NORMAL_START[elementalIndex];
+	}
+
+	public static boolean isSummerElemental(NPC npc) {
+		return npc.getId() >= 1801 && npc.getId() <= 1806;
+	}
+
+	public void updatePosition(NPC npc, int tc) {
         if (!isSummerElemental(npc))
             return;
 
@@ -33,107 +66,63 @@ public class ElementalCollisionDetector {
             tickBasis[eId] = tc;
     }
 
-    public int getParity(int elementalId) {
-        switch (elementalId) {
-            case 1801:
-                return getParityOne();
-            case 1802:
-                return getParityTwo();
-            case 1803:
-                return getParityThree();
-            case 1804:
-                return getParityFour();
-            case 1805:
-                return getParityFive();
-            case 1806:
-                return getParitySix();
-            default:
-                return 0;
-        }
+	public void updateCountdownTimer(int tc) {
+		// This is less than 60 * 6 * 20 = 7200 operations, shouldn't lag anyone to run it every game tick.
+		ticksUntilStart = moduloPositive(getBestStartPointForLowestTotalParityScore() - tc, 60);
+	}
+
+	/**
+	 * only returns one best point, even if there are multiple with the same parity.
+	 */
+	int getBestStartPointForLowestTotalParityScore() {
+		int smallestParity = Integer.MAX_VALUE;
+		int smallestParityIndex = -1;
+		for (int i = 0; i < 60; i++) {
+			int paritySum = getParitySum(i);
+			if (paritySum < smallestParity) {
+				smallestParity = paritySum;
+				smallestParityIndex = i;
+			}
+		}
+		if (smallestParityIndex == -1) throw new IllegalStateException("Every elemental should be passable on at least one tick.");
+		return smallestParityIndex;
+	}
+
+	int getParitySum(int startCycle) {
+		int paritySum = 0;
+		for (int elementalIndex = 0; elementalIndex < 6; elementalIndex++) {
+			paritySum += getParityForStartCycle(startCycle, elementalIndex);
+		}
+		return paritySum;
+	}
+
+	private int getParityForStartCycle(int startCycle, int elementalIndex) {
+		if (tickBasis[elementalIndex] == -1) return -1;
+
+		int basis = tickBasis[elementalIndex];
+
+		boolean[] validTicksForElemental = getValidTicksForElemental(elementalIndex);
+		for (int parity = 0; parity < validTicksForElemental.length; parity++) {
+			int cycleLength = CYCLE_LENGTHS[elementalIndex];
+			int indexWithParity = moduloPositive(startCycle - basis - parity, cycleLength);
+			if (validTicksForElemental[indexWithParity]) {
+				return parity;
+			}
+		}
+		throw new IllegalStateException("Every elemental should be passable on at least one tick.");
+	}
+
+	public int getParity(int elementalId) {
+		boolean seenAllElementalBasis = !Arrays.stream(tickBasis).filter(i -> i == -1).findAny().isPresent();
+		return !seenAllElementalBasis ? -1 : getParityForStartCycle(getBestStartPointForLowestTotalParityScore(), elementalId - 1801);
     }
 
     public boolean isLaunchCycle() {
-        return tickBasis[0] == tickBasis[2];
+		return ticksUntilStart < 8;
     }
 
-    private int getDiff(int baseEId, int targetEid) {
-        int bb = tickBasis[baseEId];
-        int tb = tickBasis[targetEid];
-        int diff = (bb - tb) % CYCLE_LENGTHS[baseEId];
-        return diff < 0 ? CYCLE_LENGTHS[baseEId] + diff : diff;
-    }
-
-    private int getParityOne() {
-        if (tickBasis[0] == -1)
-            return -1;
-
-        return (tickBasis[0] % 2) == 0 ? 0 : 1;
-    }
-
-    private int getParityTwo() {
-        if (getParityOne() != 0 || tickBasis[1] == -1)
-            return -1;
-
-        // equal length to e1, so we can compare bases
-        int diff = getDiff(0, 1);
-        if (diff == 1 || diff == 6) // works on 1 and 6
-            return 0;
-        else if (diff == 0) // 0 wraps down to 6
-            return 4;
-        else if (diff < 6) // distance to 1
-            return diff - 1;
-        else // distance to 6
-            return diff - 6;
-    }
-
-    private int getParityThree() {
-        if (tickBasis[2] == -1)
-            return -1;
-
-        return tickBasis[2] % 2 == 0 ? 0 : 1;
-    }
-
-    private int getParityFour() {
-        if (getParityOne() != 0 || tickBasis[3] == -1)
-            return -1;
-
-        int diff = getDiff(0, 3);
-        if ((diff >= 1 && diff <= 4) || diff == 6) // works on 1-4 + 6
-            return 0;
-        else if (diff == 0) // wraps to 6
-            return 4;
-        else if (diff == 5) // distance to 4
-            return 1;
-        else // distance to 6
-            return diff - 6;
-    }
-
-    private int getParityFive() {
-        if (getParityThree() != 0 || tickBasis[4] == -1)
-            return -1;
-
-        int diff = getDiff(2, 4);
-        if (diff == 1 || diff == 7) // works on 1 + 7
-            return 0;
-        else if (diff == 0) // 0 wraps to 7
-            return 5;
-        else if (diff < 7) // distance to 1
-            return diff - 1;
-        else // distance to 7
-            return diff - 7;
-    }
-
-    private int getParitySix() {
-        if (getParityThree() != 0 || tickBasis[5] == -1)
-            return -1;
-
-        int diff = getDiff(2, 5);
-        if ((diff >= 0 && diff <= 5) || diff == 9 || diff == 11) // works on 0-5 + 9 + 11
-            return 0;
-        else if (diff < 9) // distance from 5
-            return diff - 5;
-        else // diff is 10
-            return 1;
-    }
+	private static int moduloPositive(int base, int mod) {
+		return ((base % mod) + mod) % mod;
+	}
 
 }

@@ -24,7 +24,7 @@ For each elemental, it will be highlighted in one of four colours
 * Green; the elemental does not require any resets
 * Orange; the elemental requires the number of rests shown over it
 * Blue; the elementals are on the correct cycle to perform the one-click
-* Grey; not enough information has been gathered (wait a few seconds, or requires resetting the first or third elemental)
+* Grey; not enough information has been gathered (wait a few seconds)
 
 When an elemental is orange, you will need to navigate the maze far enough to reset it.
 Some elementals may require multiple resets, 
@@ -37,7 +37,8 @@ These two elementals will turn blue
 when they collide against their inner walls simultaneously.
 When the first elemental is highlighted blue,
 and walks **NORTH** over the blue tile, 
-click the Sq'irk tree.
+click the Sq'irk tree. Alternately, you can enable the countdown
+timer infobox and click the tree when it displays "0".
 Your character should run straight through the whole garden.
 
 Here's an image showing when to click:
@@ -46,3 +47,12 @@ Here's an image showing when to click:
 
 Although this may sound complex,
 I promise you after a couple iterations you'll have it on lock.
+
+### Gate start method
+Starting on the tile just after the gate, instead of on the tile
+just before the elemental, will save you 1 click per cycle, and
+also makes setting up the elementals take slightly less time.
+Enable this by enabling the "Start on tile after gate" checkbox
+in the plugin's configuration.
+
+![gateStart.png](gate-start.PNG)
