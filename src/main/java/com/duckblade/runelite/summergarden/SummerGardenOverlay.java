@@ -47,32 +47,45 @@ public class SummerGardenOverlay extends Overlay
 			.forEach(npc -> renderNpc(npc, graphics));
 
 		if (config.highlightLaunchTile())
+		{
 			renderTile(graphics, config.useGateStartPoint() ? LAUNCH_POINT_GATE_START : LAUNCH_POINT_REGULAR_START, config.highlightLaunch());
+		}
 
 		return null;
 	}
 
-	private void renderTile(Graphics2D graphics, WorldPoint wp, Color color) {
+	private void renderTile(Graphics2D graphics, WorldPoint wp, Color color)
+	{
 		LocalPoint lp = LocalPoint.fromWorld(client, wp);
-		if (lp != null) {
+		if (lp != null)
+		{
 			Polygon poly = Perspective.getCanvasTilePoly(client, lp);
-			if (poly != null) {
+			if (poly != null)
+			{
 				OverlayUtil.renderPolygon(graphics, poly, color);
 			}
 		}
 	}
 
-	private Color selectColor(int npcId, int parity) {
+	private Color selectColor(int npcId, int parity)
+	{
 		if (collisionDetector.isLaunchCycle() && (npcId == 1801 || npcId == 1803))
+		{
 			return config.highlightLaunch();
+		}
 		if (parity == 0)
+		{
 			return config.highlightGood();
+		}
 		if (parity == -1)
+		{
 			return Color.gray;
+		}
 		return config.highlightBad();
 	}
 
-	private void renderNpc(NPC npc, Graphics2D graphics) {
+	private void renderNpc(NPC npc, Graphics2D graphics)
+	{
 		// determine parity and color
 		int npcId = npc.getId();
 		int parity = collisionDetector.getParity(npcId);
@@ -83,11 +96,14 @@ public class SummerGardenOverlay extends Overlay
 
 		// draw text
 		ShowNumbers numbersConfig = config.showNumbers();
-		if (numbersConfig == YES || (parity != 0 && numbersConfig == ON_WRONG)) {
+		if (numbersConfig == YES || (parity != 0 && numbersConfig == ON_WRONG))
+		{
 			String text = parity != -1 ? String.valueOf(parity) : "?";
 			Point p2 = Perspective.getCanvasTextLocation(client, graphics, npc.getLocalLocation(), text, 1);
 			if (p2 != null)
+			{
 				OverlayUtil.renderTextLocation(graphics, p2, text, highlightColor);
+			}
 		}
 	}
 

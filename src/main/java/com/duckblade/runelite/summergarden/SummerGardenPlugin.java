@@ -64,7 +64,10 @@ public class SummerGardenPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		enableOverlay();
-		if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
+		if (config.showCountdownTimer())
+		{
+			enableCountdownTimerInfoBox();
+		}
 		collisionDetector.setGateStart(config.useGateStartPoint());
 	}
 
@@ -76,22 +79,31 @@ public class SummerGardenPlugin extends Plugin
 	}
 
 	private boolean overlayEnabled = false;
-	private void enableOverlay() {
+
+	private void enableOverlay()
+	{
 		if (overlayEnabled)
+		{
 			return;
+		}
 
 		overlayEnabled = true;
 		overlayManager.add(overlay);
 	}
 
-	private void disableOverlay() {
+	private void disableOverlay()
+	{
 		if (overlayEnabled)
+		{
 			overlayManager.remove(overlay);
+		}
 		overlayEnabled = false;
 	}
 
-	private void enableCountdownTimerInfoBox() {
-		if (countdownTimerInfoBox == null) {
+	private void enableCountdownTimerInfoBox()
+	{
+		if (countdownTimerInfoBox == null)
+		{
 			countdownTimerInfoBox = new InfoBox(itemManager.getImage(SUMMER_SQUIRK_ITEM_ID), this)
 			{
 				@Override
@@ -110,24 +122,32 @@ public class SummerGardenPlugin extends Plugin
 		}
 	}
 
-	private void disableCountdownTimerInfoBox() {
+	private void disableCountdownTimerInfoBox()
+	{
 		infoBoxManager.removeInfoBox(countdownTimerInfoBox);
 		countdownTimerInfoBox = null;
 	}
 
 	@Subscribe
-	public void onGameTick(GameTick e) {
+	public void onGameTick(GameTick e)
+	{
 		Player p = client.getLocalPlayer();
 		if (p == null)
+		{
 			return;
+		}
 
-		if (p.getWorldLocation().distanceTo2D(GARDEN) >= 50) {
+		if (p.getWorldLocation().distanceTo2D(GARDEN) >= 50)
+		{
 			disableCountdownTimerInfoBox();
 			disableOverlay();
 			return;
 		}
 
-		if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
+		if (config.showCountdownTimer())
+		{
+			enableCountdownTimerInfoBox();
+		}
 		enableOverlay();
 		client.getNpcs()
 			.stream()
@@ -136,32 +156,50 @@ public class SummerGardenPlugin extends Plugin
 		collisionDetector.updateCountdownTimer(client.getTickCount());
 
 		// cycle notification
-		if (config.cycleNotification() && collisionDetector.getTicksUntilStart() == config.notifyTicksBeforeStart()) {
+		if (config.cycleNotification() && collisionDetector.getTicksUntilStart() == config.notifyTicksBeforeStart())
+		{
 			notifier.notify(CYCLE_MESSAGE, TrayIcon.MessageType.INFO);
 		}
 
 		// check for stamina usage
 		int stamThreshold = config.staminaThreshold();
-		if (stamThreshold != 0) {
+		if (stamThreshold != 0)
+		{
 			boolean stamActive = client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0;
-			if (client.getEnergy() <= stamThreshold && !stamActive && !sentStaminaNotification) {
+			if (client.getEnergy() <= stamThreshold && !stamActive && !sentStaminaNotification)
+			{
 				notifier.notify(STAMINA_MESSAGE, TrayIcon.MessageType.WARNING);
 				sentStaminaNotification = true;
-			} else if (client.getEnergy() > stamThreshold) {
+			}
+			else if (client.getEnergy() > stamThreshold)
+			{
 				sentStaminaNotification = false;
 			}
 		}
 	}
 
 	@Subscribe
-	public void onConfigChanged(ConfigChanged configChanged) {
-		if (!configChanged.getGroup().equals(CONFIG_GROUP)) return;
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!configChanged.getGroup().equals(CONFIG_GROUP))
+		{
+			return;
+		}
 
-		if (configChanged.getKey().equals(CONFIG_KEY_GATE_START)) {
+		if (configChanged.getKey().equals(CONFIG_KEY_GATE_START))
+		{
 			collisionDetector.setGateStart(config.useGateStartPoint());
-		} else if (configChanged.getKey().equals(CONFIG_KEY_COUNTDOWN_TIMER_INFOBOX)) {
-			if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
-			else disableCountdownTimerInfoBox();
+		}
+		else if (configChanged.getKey().equals(CONFIG_KEY_COUNTDOWN_TIMER_INFOBOX))
+		{
+			if (config.showCountdownTimer())
+			{
+				enableCountdownTimerInfoBox();
+			}
+			else
+			{
+				disableCountdownTimerInfoBox();
+			}
 		}
 	}
 

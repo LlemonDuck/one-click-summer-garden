@@ -8,24 +8,25 @@ import net.runelite.api.NPC;
 import net.runelite.api.coords.WorldPoint;
 
 @Singleton
-public class ElementalCollisionDetector {
+public class ElementalCollisionDetector
+{
 
-    private static final WorldPoint[] HOMES = {
-            new WorldPoint(2907, 5488, 0),
-            new WorldPoint(2907, 5490, 0),
-            new WorldPoint(2910, 5487, 0),
-            new WorldPoint(2912, 5485, 0),
-            new WorldPoint(2921, 5486, 0),
-            new WorldPoint(2921, 5495, 0),
-    };
-    private static final int[] CYCLE_LENGTHS = {10, 10, 12, 20, 12, 12};
+	private static final WorldPoint[] HOMES = {
+		new WorldPoint(2907, 5488, 0),
+		new WorldPoint(2907, 5490, 0),
+		new WorldPoint(2910, 5487, 0),
+		new WorldPoint(2912, 5485, 0),
+		new WorldPoint(2921, 5486, 0),
+		new WorldPoint(2921, 5495, 0),
+	};
+	private static final int[] CYCLE_LENGTHS = {10, 10, 12, 20, 12, 12};
 
-    @Setter
-    private boolean gateStart;
+	@Setter
+	private boolean gateStart;
 
-    private final int[] tickBasis = {-1, -1, -1, -1, -1, -1};
+	private final int[] tickBasis = {-1, -1, -1, -1, -1, -1};
 
-    @Getter
+	@Getter
 	private int ticksUntilStart = -1;
 
 	static final boolean[][] VALID_TICKS_NORMAL_START = {
@@ -49,24 +50,32 @@ public class ElementalCollisionDetector {
 	 * The second index is the number of ticks since it was last at its home spot.
 	 * The value in the array is whether you can run past that elemental without getting caught.
 	 */
-	private boolean[] getValidTicksForElemental(int elementalIndex) {
+	private boolean[] getValidTicksForElemental(int elementalIndex)
+	{
 		return gateStart ? VALID_TICKS_GATE_START[elementalIndex] : VALID_TICKS_NORMAL_START[elementalIndex];
 	}
 
-	public static boolean isSummerElemental(NPC npc) {
+	public static boolean isSummerElemental(NPC npc)
+	{
 		return npc.getId() >= 1801 && npc.getId() <= 1806;
 	}
 
-	public void updatePosition(NPC npc, int tc) {
-        if (!isSummerElemental(npc))
-            return;
+	public void updatePosition(NPC npc, int tc)
+	{
+		if (!isSummerElemental(npc))
+		{
+			return;
+		}
 
-        int eId = npc.getId() - 1801;
-        if (npc.getWorldLocation().equals(HOMES[eId]))
-            tickBasis[eId] = tc;
-    }
+		int eId = npc.getId() - 1801;
+		if (npc.getWorldLocation().equals(HOMES[eId]))
+		{
+			tickBasis[eId] = tc;
+		}
+	}
 
-	public void updateCountdownTimer(int tc) {
+	public void updateCountdownTimer(int tc)
+	{
 		// This is less than 60 * 6 * 20 = 7200 operations, shouldn't lag anyone to run it every game tick.
 		ticksUntilStart = moduloPositive(getBestStartPointForLowestTotalParityScore() - tc, 60);
 	}
@@ -74,54 +83,71 @@ public class ElementalCollisionDetector {
 	/**
 	 * only returns one best point, even if there are multiple with the same parity.
 	 */
-	int getBestStartPointForLowestTotalParityScore() {
+	int getBestStartPointForLowestTotalParityScore()
+	{
 		int smallestParity = Integer.MAX_VALUE;
 		int smallestParityIndex = -1;
-		for (int i = 0; i < 60; i++) {
+		for (int i = 0; i < 60; i++)
+		{
 			int paritySum = getParitySum(i);
-			if (paritySum < smallestParity) {
+			if (paritySum < smallestParity)
+			{
 				smallestParity = paritySum;
 				smallestParityIndex = i;
 			}
 		}
-		if (smallestParityIndex == -1) throw new IllegalStateException("Every elemental should be passable on at least one tick.");
+		if (smallestParityIndex == -1)
+		{
+			throw new IllegalStateException("Every elemental should be passable on at least one tick.");
+		}
 		return smallestParityIndex;
 	}
 
-	int getParitySum(int startCycle) {
+	int getParitySum(int startCycle)
+	{
 		int paritySum = 0;
-		for (int elementalIndex = 0; elementalIndex < 6; elementalIndex++) {
+		for (int elementalIndex = 0; elementalIndex < 6; elementalIndex++)
+		{
 			paritySum += getParityForStartCycle(startCycle, elementalIndex);
 		}
 		return paritySum;
 	}
 
-	private int getParityForStartCycle(int startCycle, int elementalIndex) {
-		if (tickBasis[elementalIndex] == -1) return -1;
+	private int getParityForStartCycle(int startCycle, int elementalIndex)
+	{
+		if (tickBasis[elementalIndex] == -1)
+		{
+			return -1;
+		}
 
 		int basis = tickBasis[elementalIndex];
 
 		boolean[] validTicksForElemental = getValidTicksForElemental(elementalIndex);
-		for (int parity = 0; parity < validTicksForElemental.length; parity++) {
+		for (int parity = 0; parity < validTicksForElemental.length; parity++)
+		{
 			int cycleLength = CYCLE_LENGTHS[elementalIndex];
 			int indexWithParity = moduloPositive(startCycle - basis - parity, cycleLength);
-			if (validTicksForElemental[indexWithParity]) {
+			if (validTicksForElemental[indexWithParity])
+			{
 				return parity;
 			}
 		}
 		throw new IllegalStateException("Every elemental should be passable on at least one tick.");
 	}
 
-	public int getParity(int elementalId) {
+	public int getParity(int elementalId)
+	{
 		boolean seenAllElementalBasis = !Arrays.stream(tickBasis).filter(i -> i == -1).findAny().isPresent();
 		return !seenAllElementalBasis ? -1 : getParityForStartCycle(getBestStartPointForLowestTotalParityScore(), elementalId - 1801);
-    }
+	}
 
-    public boolean isLaunchCycle() {
+	public boolean isLaunchCycle()
+	{
 		return ticksUntilStart < 8;
-    }
+	}
 
-	private static int moduloPositive(int base, int mod) {
+	private static int moduloPositive(int base, int mod)
+	{
 		return ((base % mod) + mod) % mod;
 	}
 
