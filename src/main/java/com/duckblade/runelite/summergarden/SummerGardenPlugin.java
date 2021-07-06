@@ -106,12 +106,13 @@ public class SummerGardenPlugin extends Plugin
 					return null;
 				}
 			};
+			infoBoxManager.addInfoBox(countdownTimerInfoBox);
 		}
-		infoBoxManager.addInfoBox(countdownTimerInfoBox);
 	}
 
 	private void disableCountdownTimerInfoBox() {
 		infoBoxManager.removeInfoBox(countdownTimerInfoBox);
+		countdownTimerInfoBox = null;
 	}
 
 	@Subscribe
@@ -121,10 +122,12 @@ public class SummerGardenPlugin extends Plugin
 			return;
 
 		if (p.getWorldLocation().distanceTo2D(GARDEN) >= 50) {
+			disableCountdownTimerInfoBox();
 			disableOverlay();
 			return;
 		}
 
+		if (config.showCountdownTimer()) enableCountdownTimerInfoBox();
 		enableOverlay();
 		client.getNpcs()
 			.stream()
