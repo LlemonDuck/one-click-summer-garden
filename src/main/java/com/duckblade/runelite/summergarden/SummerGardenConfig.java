@@ -2,10 +2,8 @@ package com.duckblade.runelite.summergarden;
 
 import java.awt.Color;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.Units;
+import net.runelite.api.SoundEffectVolume;
+import net.runelite.client.config.*;
 
 @ConfigGroup(SummerGardenPlugin.CONFIG_GROUP)
 public interface SummerGardenConfig extends Config
@@ -120,6 +118,43 @@ public interface SummerGardenConfig extends Config
 	default boolean useGateStartPoint()
 	{
 		return false;
+	}
+
+
+	// Race-style countdown  -Green Donut
+	@ConfigSection(
+			name = "Race-Style Countdown",
+			description = "Options for the race-style countdown",
+			position = 11,
+			closedByDefault = true
+	)
+	String raceStyleSection = "raceStyle";
+
+	@ConfigItem(
+			keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_COUNTDOWN,
+			name = "Enable race-style countdown",
+			description = "Plays race-style countdown sounds on the last few ticks before and when the player needs to click the tree.",
+			position = 1,
+			section = raceStyleSection
+	)
+	default boolean raceStyleCountdown()
+	{
+		return false;
+	}
+
+	@Range(
+			max = SoundEffectVolume.HIGH
+	)
+	@ConfigItem(
+			keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_VOLUME,
+			name = "Race-style volume",
+			description = "Configures the volume of the race-style countdown sounds.",
+			position = 2,
+			section = raceStyleSection
+	)
+	default int raceStyleVolume()
+	{
+		return SoundEffectVolume.MEDIUM_HIGH;
 	}
 
 }

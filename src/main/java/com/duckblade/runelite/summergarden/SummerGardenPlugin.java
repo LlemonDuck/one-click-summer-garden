@@ -52,10 +52,14 @@ public class SummerGardenPlugin extends Plugin
 	public static final String CONFIG_GROUP = "oneclicksummergarden";
 	public static final String CONFIG_KEY_GATE_START = "useGateStartPoint";
 	public static final String CONFIG_KEY_COUNTDOWN_TIMER_INFOBOX = "showCountdownTimer";
+	public static final String CONFIG_KEY_RACE_STYLE_COUNTDOWN = "raceStyleCountdown";
+	public static final String CONFIG_KEY_RACE_STYLE_VOLUME = "raceStyleVolume";
 	private static final WorldPoint GARDEN = new WorldPoint(2915, 5490, 0);
 	private static final String STAMINA_MESSAGE = "[One Click Summer Garden] Low Stamina Warning";
 	private static final String CYCLE_MESSAGE = "[One Click Summer Garden] Cycle Ready";
 	private static final int SUMMER_SQUIRK_ITEM_ID = 10845;
+	private static final int RACE_STYLE_SOUND_LOW = 3817;
+	private static final int RACE_STYLE_SOUND_HIGH = 3818;
 
 	private InfoBox countdownTimerInfoBox;
 	private boolean sentStaminaNotification = false;
@@ -161,6 +165,38 @@ public class SummerGardenPlugin extends Plugin
 			notifier.notify(CYCLE_MESSAGE, TrayIcon.MessageType.INFO);
 		}
 
+		playCountdownSounds();
+
+		checkStamina();
+	}
+	
+	private void playCountdownSounds()
+	{
+		// Race-style countdown  -Green Donut
+		if (config.raceStyleCountdown() && collisionDetector.getTicksUntilStart() <= 3 && config.raceStyleVolume() > 0)
+		{
+			// As playSoundEffect only uses the volume argument when the in-game volume isn't muted, sound effect volume
+			// needs to be set to the value desired for race sounds and afterwards reset to the previous value.
+			Preferences preferences = client.getPreferences();
+			int previousVolume = preferences.getSoundEffectVolume();
+			preferences.setSoundEffectVolume(config.raceStyleVolume());
+
+			if (collisionDetector.getTicksUntilStart() == 0)
+			{
+				// high sound for countdown 0
+				client.playSoundEffect(RACE_STYLE_SOUND_HIGH, config.raceStyleVolume());
+			}
+			else
+			{
+				// low sound for countdown 3,2,1
+				client.playSoundEffect(RACE_STYLE_SOUND_LOW, config.raceStyleVolume());
+			}
+			preferences.setSoundEffectVolume(previousVolume);
+		}
+	}
+	
+	private void checkStamina()
+	{
 		// check for stamina usage
 		int stamThreshold = config.staminaThreshold();
 		if (stamThreshold != 0)
