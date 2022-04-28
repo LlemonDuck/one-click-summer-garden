@@ -201,10 +201,10 @@ public class SummerGardenPlugin extends Plugin
 		int stamThreshold = config.staminaThreshold();
 		if (stamThreshold != 0)
 		{
-			boolean stamActive = client.getVar(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0;
+			boolean stamActive = client.getVarbitValue(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0;
 			if (client.getEnergy() <= stamThreshold && !stamActive && !sentStaminaNotification)
 			{
-				notifier.notify(STAMINA_MESSAGE, TrayIcon.MessageType.WARNING);
+				notifier.notify(STAMINA_MESSAGE, TrayIcon.MessageType.INFO);
 				sentStaminaNotification = true;
 			}
 			else if (client.getEnergy() > stamThreshold)
