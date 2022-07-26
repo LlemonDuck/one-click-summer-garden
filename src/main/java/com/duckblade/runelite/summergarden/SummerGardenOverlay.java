@@ -26,6 +26,9 @@ public class SummerGardenOverlay extends Overlay
 	private final SummerGardenConfig config;
 	private final ElementalCollisionDetector collisionDetector;
 
+	private static final WorldPoint START_POINT_REGULAR_START = new WorldPoint(2908, 5482, 0);
+	private static final WorldPoint START_POINT_GATE_START = new WorldPoint(2910, 5481, 0);
+
 	private static final WorldPoint LAUNCH_POINT_REGULAR_START = new WorldPoint(2907, 5485, 0);
 	private static final WorldPoint LAUNCH_POINT_GATE_START = new WorldPoint(2907, 5484, 0);
 
@@ -48,6 +51,7 @@ public class SummerGardenOverlay extends Overlay
 
 		if (config.highlightLaunchTile())
 		{
+			renderTile(graphics, config.useGateStartPoint() ? START_POINT_GATE_START : START_POINT_REGULAR_START, config.highlightLaunch());
 			renderTile(graphics, config.useGateStartPoint() ? LAUNCH_POINT_GATE_START : LAUNCH_POINT_REGULAR_START, config.highlightLaunch());
 		}
 

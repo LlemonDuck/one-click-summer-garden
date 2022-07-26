@@ -117,7 +117,7 @@ public interface SummerGardenConfig extends Config
 	)
 	default boolean useGateStartPoint()
 	{
-		return false;
+		return true;
 	}
 
 
