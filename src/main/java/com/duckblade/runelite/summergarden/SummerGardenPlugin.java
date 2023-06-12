@@ -2,9 +2,13 @@ package com.duckblade.runelite.summergarden;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.GameObjectDespawned;
+import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
@@ -60,9 +64,13 @@ public class SummerGardenPlugin extends Plugin
 	private static final int SUMMER_SQUIRK_ITEM_ID = 10845;
 	private static final int RACE_STYLE_SOUND_LOW = 3817;
 	private static final int RACE_STYLE_SOUND_HIGH = 3818;
+	private static final int OBJECT_ID_TREE = 12943;
 
 	private InfoBox countdownTimerInfoBox;
 	private boolean sentStaminaNotification = false;
+
+	@Getter
+	private GameObject treeObject;
 
 	@Override
 	protected void startUp() throws Exception
@@ -236,6 +244,24 @@ public class SummerGardenPlugin extends Plugin
 			{
 				disableCountdownTimerInfoBox();
 			}
+		}
+	}
+
+	@Subscribe
+	public void onGameObjectSpawned(GameObjectSpawned e)
+	{
+		if (e.getGameObject().getId() == OBJECT_ID_TREE)
+		{
+			this.treeObject = e.getGameObject();
+		}
+	}
+
+	@Subscribe
+	public void onGameObjectDespawned(GameObjectDespawned e)
+	{
+		if (e.getGameObject() == this.treeObject)
+		{
+			this.treeObject = null;
 		}
 	}
 

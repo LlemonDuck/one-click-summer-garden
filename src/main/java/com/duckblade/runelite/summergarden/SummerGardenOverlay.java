@@ -1,14 +1,11 @@
 package com.duckblade.runelite.summergarden;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.Perspective;
+
+import net.runelite.api.*;
 import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -23,6 +20,7 @@ public class SummerGardenOverlay extends Overlay
 {
 
 	private final Client client;
+	private final SummerGardenPlugin plugin;
 	private final SummerGardenConfig config;
 	private final ElementalCollisionDetector collisionDetector;
 
@@ -33,9 +31,10 @@ public class SummerGardenOverlay extends Overlay
 	private static final WorldPoint LAUNCH_POINT_GATE_START = new WorldPoint(2907, 5484, 0);
 
 	@Inject
-	public SummerGardenOverlay(Client client, SummerGardenConfig config, ElementalCollisionDetector collisionDetector)
+	public SummerGardenOverlay(Client client, SummerGardenPlugin plugin, SummerGardenConfig config, ElementalCollisionDetector collisionDetector)
 	{
 		this.client = client;
+		this.plugin = plugin;
 		this.config = config;
 		this.collisionDetector = collisionDetector;
 		setPosition(OverlayPosition.DYNAMIC);
@@ -54,6 +53,8 @@ public class SummerGardenOverlay extends Overlay
 			renderTile(graphics, config.useGateStartPoint() ? START_POINT_GATE_START : START_POINT_REGULAR_START, config.highlightLaunch());
 			renderTile(graphics, config.useGateStartPoint() ? LAUNCH_POINT_GATE_START : LAUNCH_POINT_REGULAR_START, config.highlightLaunch());
 		}
+
+		renderTreeCountdown(plugin.getTreeObject(), graphics);
 
 		return null;
 	}
@@ -109,6 +110,34 @@ public class SummerGardenOverlay extends Overlay
 				OverlayUtil.renderTextLocation(graphics, p2, text, highlightColor);
 			}
 		}
+	}
+
+	private void renderTreeCountdown(GameObject tree, Graphics2D graphics)
+	{
+		int size = config.countdownOnTreeSize();
+		if (size == 0 || tree == null)
+		{
+			return;
+		}
+
+		Shape clickbox = tree.getClickbox();
+		if (clickbox == null)
+		{
+			return;
+		}
+
+		String t = String.valueOf(collisionDetector.getTicksUntilStart());
+		Font font = graphics.getFont().deriveFont((float) config.countdownOnTreeSize());
+		int width = graphics.getFontMetrics().stringWidth(t);
+		int height = graphics.getFontMetrics().getHeight();
+
+		Rectangle2D bounds = clickbox.getBounds();
+		Point center = new Point((int) bounds.getCenterX() - width / 2, (int) bounds.getCenterY() + height / 2);
+
+		Color color = collisionDetector.isLaunchCycle() ? config.highlightLaunch() : config.highlightGood();
+		graphics.setFont(font);
+		OverlayUtil.renderPolygon(graphics, clickbox, color);
+		OverlayUtil.renderTextLocation(graphics, center, t, color);
 	}
 
 }

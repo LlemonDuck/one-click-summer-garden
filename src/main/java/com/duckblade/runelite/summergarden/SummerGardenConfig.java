@@ -120,12 +120,22 @@ public interface SummerGardenConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(
+			keyName = "countdownOnTreeSize",
+			name = "Tree Countdown",
+			description = "Font size of a countdown on the tree. Set to 0 to disable.",
+			position = 11
+	)
+	default int countdownOnTreeSize()
+	{
+		return 0;
+	}
 
 	// Race-style countdown  -Green Donut
 	@ConfigSection(
 			name = "Race-Style Countdown",
 			description = "Options for the race-style countdown",
-			position = 11,
+			position = 12,
 			closedByDefault = true
 	)
 	String raceStyleSection = "raceStyle";
