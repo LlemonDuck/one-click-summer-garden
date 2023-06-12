@@ -1,11 +1,16 @@
 package com.duckblade.runelite.summergarden;
 
 import com.google.inject.Provides;
+import java.awt.Color;
+import java.awt.TrayIcon;
 import javax.inject.Inject;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.GameObject;
+import net.runelite.api.Player;
+import net.runelite.api.Preferences;
+import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -18,8 +23,6 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
-
-import java.awt.*;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 
@@ -73,7 +76,7 @@ public class SummerGardenPlugin extends Plugin
 	private GameObject treeObject;
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		enableOverlay();
 		if (config.showCountdownTimer())
@@ -84,7 +87,7 @@ public class SummerGardenPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		disableOverlay();
 		disableCountdownTimerInfoBox();
@@ -121,7 +124,7 @@ public class SummerGardenPlugin extends Plugin
 				@Override
 				public String getText()
 				{
-					return "" + collisionDetector.getTicksUntilStart();
+					return String.valueOf(collisionDetector.getTicksUntilStart());
 				}
 
 				@Override
@@ -177,7 +180,7 @@ public class SummerGardenPlugin extends Plugin
 
 		checkStamina();
 	}
-	
+
 	private void playCountdownSounds()
 	{
 		// Race-style countdown  -Green Donut
@@ -202,7 +205,7 @@ public class SummerGardenPlugin extends Plugin
 			preferences.setSoundEffectVolume(previousVolume);
 		}
 	}
-	
+
 	private void checkStamina()
 	{
 		// check for stamina usage

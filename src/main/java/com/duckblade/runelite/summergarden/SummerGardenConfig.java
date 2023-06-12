@@ -1,14 +1,18 @@
 package com.duckblade.runelite.summergarden;
 
 import java.awt.Color;
-
 import net.runelite.api.SoundEffectVolume;
-import net.runelite.client.config.*;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigGroup;
+import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
+import net.runelite.client.config.Units;
 
 @ConfigGroup(SummerGardenPlugin.CONFIG_GROUP)
 public interface SummerGardenConfig extends Config
 {
-	
+
 	@ConfigItem(
 		keyName = "highlightGood",
 		name = "On-Parity Color",
@@ -121,10 +125,10 @@ public interface SummerGardenConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "countdownOnTreeSize",
-			name = "Tree Countdown",
-			description = "Font size of a countdown on the tree. Set to 0 to disable.",
-			position = 11
+		keyName = "countdownOnTreeSize",
+		name = "Tree Countdown",
+		description = "Font size of a countdown on the tree. Set to 0 to disable.",
+		position = 11
 	)
 	default int countdownOnTreeSize()
 	{
@@ -133,19 +137,19 @@ public interface SummerGardenConfig extends Config
 
 	// Race-style countdown  -Green Donut
 	@ConfigSection(
-			name = "Race-Style Countdown",
-			description = "Options for the race-style countdown",
-			position = 12,
-			closedByDefault = true
+		name = "Race-Style Countdown",
+		description = "Options for the race-style countdown",
+		position = 12,
+		closedByDefault = true
 	)
 	String raceStyleSection = "raceStyle";
 
 	@ConfigItem(
-			keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_COUNTDOWN,
-			name = "Enable race-style countdown",
-			description = "Plays race-style countdown sounds on the last few ticks before and when the player needs to click the tree.",
-			position = 1,
-			section = raceStyleSection
+		keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_COUNTDOWN,
+		name = "Enable race-style countdown",
+		description = "Plays race-style countdown sounds on the last few ticks before and when the player needs to click the tree.",
+		position = 1,
+		section = raceStyleSection
 	)
 	default boolean raceStyleCountdown()
 	{
@@ -153,14 +157,14 @@ public interface SummerGardenConfig extends Config
 	}
 
 	@Range(
-			max = SoundEffectVolume.HIGH
+		max = SoundEffectVolume.HIGH
 	)
 	@ConfigItem(
-			keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_VOLUME,
-			name = "Race-style volume",
-			description = "Configures the volume of the race-style countdown sounds.",
-			position = 2,
-			section = raceStyleSection
+		keyName = SummerGardenPlugin.CONFIG_KEY_RACE_STYLE_VOLUME,
+		name = "Race-style volume",
+		description = "Configures the volume of the race-style countdown sounds.",
+		position = 2,
+		section = raceStyleSection
 	)
 	default int raceStyleVolume()
 	{
