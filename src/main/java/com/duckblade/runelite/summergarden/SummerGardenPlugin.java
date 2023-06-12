@@ -198,7 +198,7 @@ public class SummerGardenPlugin extends Plugin
 	private void checkStamina()
 	{
 		// check for stamina usage
-		int stamThreshold = config.staminaThreshold();
+		int stamThreshold = config.staminaThreshold() * 100;
 		if (stamThreshold != 0)
 		{
 			boolean stamActive = client.getVarbitValue(Varbits.RUN_SLOWED_DEPLETION_ACTIVE) != 0;
